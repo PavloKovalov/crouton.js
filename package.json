@@ -1,0 +1,11 @@
+{
+  "name": "crouton.js",
+  "version": "0.1.0",
+  "description": "Yet another JS framework.",
+  "main": "crouton.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pavel Kovalyov <pavlo.kovalyov@gmail.com>",
+  "license": "MIT"
+}
