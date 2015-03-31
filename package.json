@@ -4,11 +4,27 @@
   "description": "Yet another JS framework.",
   "main": "crouton.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "jshint --config=./.jshintrc src/ spec/",
+    "test": "npm run lint && jest"
   },
   "author": "Pavel Kovalyov <pavlo.kovalyov@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.6.0"
+  },
+  "devDependencies": {
+    "jest-cli": "^0.4.0",
+    "jshint": "^2.6.3"
+  },
+  "jest": {
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
+    "testFileExtensions": [
+      "js"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "json"
+    ],
+    "testDirectoryName": "spec"
   }
 }
