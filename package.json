@@ -13,6 +13,7 @@
     "lodash": "^3.6.0"
   },
   "devDependencies": {
+    "babel-jest": "^4.0.0",
     "jest-cli": "^0.4.0",
     "jshint": "^2.6.3"
   },
