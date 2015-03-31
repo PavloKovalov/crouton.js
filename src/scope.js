@@ -1,7 +1,12 @@
+'use strict';
+
+import _ from 'lodash';
+
 class Scope {
 
     constructor() {
         this.$$watchers = [];
+		this.$$asyncQueue = [];
     }
 
     $watch(watchFn, listenerFn, valueEq) {
@@ -43,6 +48,11 @@ class Scope {
 			dirty;
 
 		do {
+			while (this.$$asyncQueue.length) {
+				var asyncTask = this.$$asyncQueue.shift();
+				this.$eval(asyncTask.expression);
+			}
+
 			dirty = this.$digestOnce();
 
 			if (dirty && !(ttl--)) {
@@ -56,8 +66,29 @@ class Scope {
 			return _.isEqual(newValue, oldValue);
 		} else {
 			return newValue === oldValue ||
-				(typeof newValue === 'number' && typeof oldValue === 'number'
-				&& isNaN(newValue) && isNaN(oldValue));
+				(typeof newValue === 'number' && typeof oldValue === 'number' &&
+				isNaN(newValue) && isNaN(oldValue));
 		}
 	}
+
+	$eval(expr, locals) {
+		return expr(this, locals);
+	}
+
+	$apply(expr) {
+		try {
+			return this.$eval(expr);
+		} finally {
+			this.$digest();
+		}
+	}
+
+	$applyAsync(expr) {
+		this.$$asyncQueue.push({
+			scope: this,
+			expression: expr
+		});
+	}
 }
+
+export default Scope;
