@@ -83,7 +83,7 @@ class Scope {
 		}
 	}
 
-	$applyAsync(expr) {
+	$evalAsync(expr) {
 		this.$$asyncQueue.push({
 			scope: this,
 			expression: expr

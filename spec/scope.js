@@ -14,6 +14,18 @@ describe('Scope', () => {
         expect(typeof Scope.prototype.$digest).toBe('function');
     });
 
+    it('has $eval method', () => {
+        expect(typeof Scope.prototype.$eval).toBe('function');
+    });
+
+    it('has $evalAsync method', () => {
+        expect(typeof Scope.prototype.$evalAsync).toBe('function');
+    });
+
+    it('has $apply method', () => {
+        expect(typeof Scope.prototype.$apply).toBe('function');
+    });
+
     it('initialized properly', () => {
         var scope = new Scope();
 
@@ -111,7 +123,7 @@ describe('Scope', () => {
             expect(scope.$digest).toThrow();
         });
 
-        it('compares properly', () => {
+        it('compares objects properly', () => {
             scope.counterByRef = 0;
             scope.counterByValue = 0;
             scope.value = [1, 2, {three: [4, 5]}];
@@ -153,6 +165,60 @@ describe('Scope', () => {
             expect(scope.counterByRef).toEqual(3);
             expect(scope.counterByValue).toEqual(4);
         });
+
+        it('works with NaN', () => {
+            scope.number = 0;
+            scope.counter = 0;
+
+            scope.$watch(
+                (scope) => { return scope.number; },
+                (newVal, oldVal, scope) => { scope.counter++; }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toEqual(1);
+
+            // convert watched value to NaN
+            scope.number = parseInt('WAT', 10);
+            scope.$digest();
+            expect(scope.counter).toEqual(2);
+        });
+
+        it('trigger after $apply executed', () => {
+            var listenerFn = jasmine.createSpy('listenerFn');
+
+            scope.$watch(
+                (scope) => { return scope.theValue; },
+                listenerFn
+            );
+
+            scope.$apply((scope) => {
+                scope.theValue = 'Modified from "outer" world';
+            });
+
+            expect(listenerFn).toHaveBeenCalled();
+        });
+
+        it('execute expr from $evalAsync queue', () => {
+            scope.asyncEvaled = false;
+
+            scope.$watch(
+                (scope) => { return scope.theValue; },
+                (newVal, oldVal, scope) => {
+                    scope.counter++;
+                    scope.$evalAsync((scope) => {
+                        scope.asyncEvaled = true;
+                    });
+                    expect(scope.asyncEvaled).toEqual(false);
+                }
+            );
+
+            scope.theValue = '42';
+            scope.$digest();
+
+            expect(scope.asyncEvaled).toEqual(true);
+        });
+
     });
 
 });
