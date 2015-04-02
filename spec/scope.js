@@ -4,7 +4,7 @@ jest.autoMockOff();
 
 import Scope from '../src/scope.js';
 
-describe('Scope', () => {
+describe('class Scope', () => {
 
     it('has $watch method', () => {
         expect(typeof Scope.prototype.$watch).toBe('function');
@@ -219,6 +219,54 @@ describe('Scope', () => {
             expect(scope.asyncEvaled).toEqual(true);
         });
 
+    });
+
+    describe('phase', () => {
+        it('initially set to null', () => {
+            expect(scope.$$phase).toEqual(null);
+        });
+
+        it('throw exception when phase is started', () => {
+            scope.value = false;
+
+            expect(scope.$$phase).toEqual(null);
+
+            scope.$watch(
+                (scope) => { return scope.value; },
+                (newVal, oldVal, scope) => {
+                    expect(scope.$$phase).toEqual('$digest');
+                    scope.$beginPhase('$apply');
+                }
+            );
+
+            expect(scope.$digest).toThrow();
+        });
+
+        it('set on $digest', () => {
+            scope.value = false;
+
+            expect(scope.$$phase).toEqual(null);
+
+            scope.$watch(
+                (scope) => { return scope.value; },
+                (newVal, oldVal, scope) => {
+                    expect(scope.$$phase).toEqual('$digest');
+                }
+            );
+
+            scope.$digest();
+            expect(scope.$$phase).toEqual(null);
+        });
+
+        it('set on $apply', () => {
+            expect(scope.$$phase).toEqual(null);
+
+            scope.$apply( (scope) => {
+                expect(scope.$$phase).toEqual('$apply');
+            } );
+
+            expect(scope.$$phase).toEqual(null);
+        });
     });
 
 });
