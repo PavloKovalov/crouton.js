@@ -32,6 +32,7 @@ describe('class Scope', () => {
         expect(typeof scope).toBe('object');
         expect(scope.$$watchers).toEqual(jasmine.any(Array));
         expect(scope.$$asyncQueue).toEqual(jasmine.any(Array));
+        expect(scope.$$postDigestQueue).toEqual(jasmine.any(Array));
     });
 });
 
@@ -266,6 +267,30 @@ describe('Scope', () => {
             } );
 
             expect(scope.$$phase).toEqual(null);
+        });
+    });
+
+    describe('$$postDigest', () => {
+        it('add to $$postDigestQueue', () => {
+            var callback = jest.genMockFunction();
+
+            expect(scope.$$postDigestQueue.length).toEqual(0);
+            scope.$$postDigest(callback);
+            expect(scope.$$postDigestQueue.length).toEqual(1);
+        });
+
+        it('executed in $digest final stage', () => {
+            var callback = jest.genMockFunction();
+
+            expect(scope.$$postDigestQueue.length).toEqual(0);
+            scope.$$postDigest(callback);
+            expect(scope.$$postDigestQueue.length).toEqual(1);
+            expect(callback).not.toBeCalled();
+
+            scope.$digest();
+
+            expect(callback).toBeCalled();
+            expect(scope.$$postDigestQueue.length).toEqual(0);
         });
     });
 

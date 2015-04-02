@@ -7,6 +7,7 @@ class Scope {
     constructor() {
         this.$$watchers = [];
 		this.$$asyncQueue = [];
+		this.$$postDigestQueue = [];
 		this.$$phase = null;
     }
 
@@ -77,6 +78,10 @@ class Scope {
 		} while (dirty);
 
 		this.$clearPhase();
+
+		while (this.$$postDigestQueue.length) {
+			this.$$postDigestQueue.shift()();
+		}
 	}
 
 	$$areEqual(newValue, oldValue, valueEq) {
@@ -116,6 +121,10 @@ class Scope {
 			scope: this,
 			expression: expr
 		});
+	}
+
+	$$postDigest(fn) {
+		this.$$postDigestQueue.push(fn);
 	}
 }
 
