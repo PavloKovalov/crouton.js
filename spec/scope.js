@@ -75,6 +75,28 @@ describe('Scope', () => {
             // listener should be called
             expect(scope.counter).toEqual(2);
         });
+
+        it('removes watch', () => {
+            scope.theValue = 'qweqwe';
+            scope.counter = 0;
+
+            var removeWatch = scope.$watch(
+                (scope) => { return scope.theValue; },
+                (newVal, oldVal, scope) => { scope.counter++; }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toEqual(1);
+
+            scope.theValue = 'bazinga';
+            scope.$digest();
+            expect(scope.counter).toEqual(2);
+
+            removeWatch();
+            scope.theValue = 'gotcha!';
+            scope.$digest();
+            expect(scope.counter).toEqual(2);
+        });
     });
 
     describe('$digest', () => {

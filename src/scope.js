@@ -30,6 +30,13 @@ class Scope {
         };
 
         this.$$watchers.push(watch);
+
+		return () => {
+			var index = this.$$watchers.indexOf(watch);
+			if (index >= 0) {
+				this.$$watchers.splice(index, 1);
+			}
+		};
     }
 
     $digestOnce() {
