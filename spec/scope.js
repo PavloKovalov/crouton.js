@@ -294,4 +294,37 @@ describe('Scope', () => {
         });
     });
 
+    describe('thrown exception', () => {
+        it('cought for $$asyncQueue events', () => {
+            var callback = () => {
+                scope.$evalAsync(() => {
+                    throw 'exception';
+                });
+            };
+
+            expect(callback).not.toThrow();
+        });
+
+        it('cought properly', () => {
+            scope.theValue = 'asd';
+            scope.counter = 0;
+
+            scope.$watch(() => {
+                throw 'Watch fail';
+            });
+            scope.$watch(
+                (scope) => {
+                    scope.$evalAsync(() => { throw 'Async fail'; });
+                    return scope.theValue;
+                },
+                (newVal, oldVal, scope) => {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toEqual(1);
+        });
+    });
+
 });
