@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+function initWatchValue() { }
+
 class Scope {
 
     constructor() {
@@ -9,6 +11,7 @@ class Scope {
 		this.$$asyncQueue = [];
 		this.$$postDigestQueue = [];
 		this.$$phase = null;
+		this.$$lastDirtyWatch = null;
     }
 
 	$beginPhase(phase) {
@@ -26,10 +29,13 @@ class Scope {
         var watch = {
             watchFn: watchFn,
             listenerFn: listenerFn || function() {},
+			last: initWatchValue,
 			valueEq: !!valueEq
         };
 
         this.$$watchers.push(watch);
+
+		this.$$lastDirtyWatch = null;
 
 		return () => {
 			var index = this.$$watchers.indexOf(watch);
@@ -42,13 +48,13 @@ class Scope {
     $digestOnce() {
 		var dirty = false;
 
-        this.$$watchers.forEach((watch) => {
+        _.forEach(this.$$watchers, (watch) => {
 			try {
 	            var newValue = watch.watchFn(this),
 					oldValue = watch.last;
 
 	            if (!this.$$areEqual(newValue, oldValue, watch.valueEq)) {
-	                watch.listenerFn(newValue, oldValue, this);
+					this.$$lastDirtyWatch = watch;
 
 					if (watch.valueEq) {
 						watch.last = _.cloneDeep(newValue);
@@ -56,8 +62,12 @@ class Scope {
 						watch.last = newValue;
 					}
 
+					watch.listenerFn(newValue, oldValue, this);
+
 					dirty = true;
-	            }
+	            } else if (this.$$lastDirtyWatch === watch) {
+					return false;
+				}
 			} catch (e) {
 				(console.error || console.log)(e);
 			}
@@ -70,13 +80,15 @@ class Scope {
 		var ttl = 10,
 			dirty;
 
+		this.$$lastDirtyWatch = null;
+
 		this.$beginPhase('$digest');
 
 		do {
 			while (this.$$asyncQueue.length) {
 				try {
 					var asyncTask = this.$$asyncQueue.shift();
-					this.$eval(asyncTask.expression);
+					asyncTask.scope.$eval(asyncTask.expression);
 				} catch (e) {
 					(console.error || console.log)(e);
 				}
@@ -84,12 +96,12 @@ class Scope {
 
 			dirty = this.$digestOnce();
 
-			if (dirty && !(ttl--)) {
+			if ((dirty || this.$$asyncQueue.length) && !(ttl--)) {
 				this.$clearPhase();
 
 				throw '10 digest iterations reached';
 			}
-		} while (dirty);
+		} while (dirty || this.$$asyncQueue.length);
 
 		this.$clearPhase();
 

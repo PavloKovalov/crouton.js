@@ -242,11 +242,82 @@ describe('Scope', () => {
             expect(scope.asyncEvaled).toEqual(true);
         });
 
+        it('executes $evalAsynced fn added by $watch', () => {
+            scope.theValue = [1, 2, 3];
+            scope.asyncEvaluated = false;
+
+            scope.$watch(
+                (scope) => {
+                    if (!scope.asyncEvaluated) {
+                        scope.$evalAsync(
+                            (scope) => { scope.asyncEvaluated = true; }
+                        );
+                    }
+                    return scope.theValue;
+                },
+                () => {}
+            );
+
+            scope.$digest();
+
+            expect(scope.asyncEvaluated).toBe(true);
+        });
+
+        it('executes $evalAsynced fn even when not dirty', () => {
+            scope.theValue = 'lol';
+            scope.asyncEvaluatedTimes = 0;
+
+            scope.$watch(
+                (scope) => {
+                    if (scope.asyncEvaluatedTimes < 2) {
+                        scope.$evalAsync(
+                            (scope) => {
+                                scope.asyncEvaluatedTimes++;
+                            }
+                        );
+                    }
+                    return scope.theValue;
+                },
+                () => {}
+            );
+
+            scope.$digest();
+
+            expect(scope.asyncEvaluatedTimes).toEqual(2);
+        });
+
     });
 
     describe('phase', () => {
         it('initially set to null', () => {
             expect(scope.$$phase).toEqual(null);
+        });
+
+        it('has a $$phase field with current digest phase value', () => {
+            scope.theValue = [1, 2, 3];
+            scope.phaseInWatchFn = undefined;
+            scope.phaseInListenerFn = undefined;
+            scope.phaseInApplyFn = undefined;
+
+            scope.$watch(
+                (scope) => {
+                    scope.phaseInWatchFn = scope.$$phase;
+                    return scope.theValue;
+                },
+                (newVal, oldVal, scope) => {
+                    scope.phaseInListenerFn = scope.$$phase;
+                }
+            );
+
+            scope.$apply(
+                (scope) => {
+                    scope.phaseInApplyFn = scope.$$phase;
+                }
+            );
+
+            expect(scope.phaseInWatchFn).toBe('$digest');
+            expect(scope.phaseInListenerFn).toBe('$digest');
+            expect(scope.phaseInApplyFn).toBe('$apply');
         });
 
         it('throw exception when phase is started', () => {
@@ -328,7 +399,7 @@ describe('Scope', () => {
         });
 
         it('cought properly', () => {
-            scope.theValue = 'asd';
+            scope.theValue = ['asd'];
             scope.counter = 0;
 
             scope.$watch(() => {
@@ -344,7 +415,8 @@ describe('Scope', () => {
                 }
             );
 
-            scope.$digest();
+
+            expect(() => { scope.$digest(); }).toThrow();
             expect(scope.counter).toEqual(1);
         });
     });
