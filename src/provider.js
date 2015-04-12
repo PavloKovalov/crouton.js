@@ -4,10 +4,16 @@ const DIRECTIVE_SUFFIX = 'Directive';
 
 const CONTROLLER_SUFFIX = 'Controller';
 
+const FUNCTION_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+
+const FUNCTION_ARGS_SPLIT = ',';
+
+const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+
 class Provider {
 
   constructor() {
-    this.$$providers  = {};
+    this.$$providers = {};
   }
 
   /**
@@ -47,11 +53,29 @@ class Provider {
 
   /**
    * Returns array of dependencies for given service
+   * @param fn
+   * @returns {Array}
    */
   annotate(fn) {
+    var $inject = [],
+      deps = fn.toString();
 
+    deps = deps.replace(STRIP_COMMENTS, '').match(FUNCTION_ARGS);
+
+    if (deps && (deps = deps[1])) {
+      deps.split(FUNCTION_ARGS_SPLIT).forEach((dep) => {
+        $inject.push(dep.trim());
+      });
+    }
+
+    return $inject;
   }
 
+  /**
+   * Register provider
+   * @param name
+   * @param factory
+   */
   $$register(name, factory) {
     this.$$providers[name] = factory;
   }

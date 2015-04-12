@@ -59,3 +59,15 @@ describe('Provider', () => {
     expect(Provider.$$providers[serviceName]).toBe(fn);
   });
 });
+
+describe('Provider::annotate', () => {
+  it('returns array of dependencies', () => {
+    var fn = ($scope, $http, $dep1, $anotherDep) => {
+      return [$scope, $http, $dep1, $anotherDep];
+    };
+
+    expect(Provider.annotate(fn)).toEqual(
+      ['$scope', '$http', '$dep1', '$anotherDep']
+    );
+  });
+});
