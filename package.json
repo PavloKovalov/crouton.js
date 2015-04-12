@@ -5,6 +5,7 @@
   "main": "crouton.js",
   "scripts": {
     "lint": "jshint --config=./.jshintrc src/ spec/",
+    "test-only": "jest",
     "test": "npm run lint && jest"
   },
   "author": "Pavel Kovalyov <pavlo.kovalyov@gmail.com>",

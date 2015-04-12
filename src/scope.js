@@ -8,10 +8,10 @@ class Scope {
 
     constructor() {
         this.$$watchers = [];
-		this.$$asyncQueue = [];
-		this.$$postDigestQueue = [];
-		this.$$phase = null;
-		this.$$lastDirtyWatch = null;
+    		this.$$asyncQueue = [];
+    		this.$$postDigestQueue = [];
+    		this.$$phase = null;
+    		this.$$lastDirtyWatch = null;
     }
 
 	$beginPhase(phase) {
