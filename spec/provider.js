@@ -33,3 +33,29 @@ describe('Provider external interface', () => {
     expect(typeof Provider.annotate).toBe('function');
   });
 });
+
+describe('Provider', () => {
+  it('register directive', () => {
+    let directive = 'crouton-wat',
+      fn = () => {};
+    Provider.directive(directive, fn);
+
+    expect(Provider.$$providers[directive+'Directive']).toBe(fn);
+  });
+
+  it('register controller', () => {
+    let controllerName = 'Main',
+      fn = () => {};
+    Provider.controller(controllerName, fn);
+
+    expect(Provider.$$providers[controllerName+'Controller']).toBe(fn);
+  });
+
+  it('register service', () => {
+    let serviceName = 'wut',
+      fn = () => {};
+    Provider.service(serviceName, fn);
+
+    expect(Provider.$$providers[serviceName]).toBe(fn);
+  });
+});
